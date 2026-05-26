@@ -1,25 +1,34 @@
 import Link from "next/link";
 import { Pin, Star } from "lucide-react";
-import { itemTypes, type Item } from "@/lib/mock-data";
-import { TypeIcon } from "./TypeIcon";
+import type { DashboardItem } from "@/lib/db/items";
+import { cn } from "@/lib/utils";
+import {
+  TypeIcon,
+  getIconNameForType,
+  getTypeBorderColor,
+} from "./TypeIcon";
 
-export function ItemRow({ item }: { item: Item }) {
-  const type = itemTypes.find((t) => t.id === item.typeId);
-  const dateLabel = new Date(item.updatedAt).toLocaleDateString("en-US", {
+export function ItemRow({ item }: { item: DashboardItem }) {
+  const dateLabel = item.updatedAt.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
   });
+  const borderColor = getTypeBorderColor(item.typeName);
 
   return (
     <Link
       href={`/items/${item.id}`}
-      className="flex items-start gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent/40"
-    >
-      {type && (
-        <div className="mt-0.5">
-          <TypeIcon typeId={type.id} iconName={type.icon} />
-        </div>
+      className={cn(
+        "flex items-start gap-3 rounded-lg border border-border border-l-4 bg-card p-4 transition-colors hover:bg-accent/40",
+        borderColor,
       )}
+    >
+      <div className="mt-0.5">
+        <TypeIcon
+          typeId={item.typeName}
+          iconName={getIconNameForType(item.typeName)}
+        />
+      </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
@@ -29,9 +38,11 @@ export function ItemRow({ item }: { item: Item }) {
             <Star className="size-3.5 shrink-0 fill-yellow-500 text-yellow-500" />
           )}
         </div>
-        <p className="mt-1 truncate text-sm text-muted-foreground">
-          {item.description}
-        </p>
+        {item.description && (
+          <p className="mt-1 truncate text-sm text-muted-foreground">
+            {item.description}
+          </p>
+        )}
 
         {item.tags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">

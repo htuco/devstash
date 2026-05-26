@@ -6,7 +6,11 @@ import {
   getCollectionStats,
   getRecentCollections,
 } from "@/lib/db/collections";
-import { items } from "@/lib/mock-data";
+import {
+  getItemStats,
+  getPinnedItems,
+  getRecentItems,
+} from "@/lib/db/items";
 import { prisma } from "@/lib/prisma";
 
 const DEMO_EMAIL = "demo@devstash.io";
@@ -17,24 +21,16 @@ export default async function DashboardPage() {
     select: { id: true },
   });
 
-  const [recentCollections, collectionStats] = demoUser
-    ? await Promise.all([
-        getRecentCollections(demoUser.id),
-        getCollectionStats(demoUser.id),
-      ])
-    : [[], { total: 0, favorites: 0 }];
-
-  const totalItems = items.length;
-  const favoriteItems = items.filter((i) => i.isFavorite).length;
-
-  const pinnedItems = items.filter((i) => i.isPinned);
-
-  const recentItems = [...items]
-    .sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    )
-    .slice(0, 10);
+  const [recentCollections, collectionStats, pinnedItems, recentItems, itemStats] =
+    demoUser
+      ? await Promise.all([
+          getRecentCollections(demoUser.id),
+          getCollectionStats(demoUser.id),
+          getPinnedItems(demoUser.id),
+          getRecentItems(demoUser.id),
+          getItemStats(demoUser.id),
+        ])
+      : [[], { total: 0, favorites: 0 }, [], [], { total: 0, favorites: 0 }];
 
   return (
     <div className="flex flex-col gap-8">
@@ -46,9 +42,9 @@ export default async function DashboardPage() {
       </header>
 
       <StatsCards
-        totalItems={totalItems}
+        totalItems={itemStats.total}
         totalCollections={collectionStats.total}
-        favoriteItems={favoriteItems}
+        favoriteItems={itemStats.favorites}
         favoriteCollections={collectionStats.favorites}
       />
 
