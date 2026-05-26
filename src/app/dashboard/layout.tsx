@@ -13,7 +13,9 @@ export default function DashboardLayout({
         <TopBar />
         <div className="flex flex-1">
           <Sidebar />
-          <main className="flex-1 p-4 md:p-6">{children}</main>
+          <main className="flex-1 px-4 py-4 md:px-10 md:py-8 lg:px-16">
+            <div className="mx-auto w-full max-w-5xl">{children}</div>
+          </main>
         </div>
       </div>
     </SidebarProvider>
