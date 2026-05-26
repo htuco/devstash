@@ -13,9 +13,11 @@ import {
   Terminal,
   type LucideIcon,
 } from "lucide-react";
-import { collections, currentUser, itemTypes } from "@/lib/mock-data";
+import type { SidebarCollection } from "@/lib/db/collections";
+import type { SidebarItemType } from "@/lib/db/items";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-context";
+import { getIconNameForType, getTypeBgColor } from "./TypeIcon";
 
 const iconMap: Record<string, LucideIcon> = {
   code: Code,
@@ -35,13 +37,21 @@ const iconColorMap: Record<string, string> = {
   file: "text-zinc-400",
   image: "text-emerald-400",
   url: "text-purple-400",
+  link: "text-purple-400",
 };
 
-export function Sidebar() {
+export function Sidebar({
+  itemTypes,
+  favoriteCollections,
+  recentCollections,
+  user,
+}: {
+  itemTypes: SidebarItemType[];
+  favoriteCollections: SidebarCollection[];
+  recentCollections: SidebarCollection[];
+  user: { name: string; email: string } | null;
+}) {
   const { isCollapsed, isMobileOpen, closeMobile } = useSidebar();
-
-  const favoriteCollections = collections.filter((c) => c.isFavorite);
-  const recentCollections = collections.filter((c) => !c.isFavorite);
 
   return (
     <>
@@ -68,11 +78,12 @@ export function Sidebar() {
           <SectionLabel label="Types" collapsed={isCollapsed} />
           <ul className="mt-1 space-y-0.5">
             {itemTypes.map((type) => {
-              const Icon = iconMap[type.icon] ?? File;
+              const iconName = getIconNameForType(type.name);
+              const Icon = iconMap[iconName] ?? File;
               return (
                 <li key={type.id}>
                   <Link
-                    href={`/items/${type.id}`}
+                    href={`/items/${type.name}`}
                     onClick={closeMobile}
                     className={cn(
                       "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
@@ -83,10 +94,15 @@ export function Sidebar() {
                     <Icon
                       className={cn(
                         "size-4 shrink-0",
-                        iconColorMap[type.id] ?? "text-muted-foreground",
+                        iconColorMap[type.name] ?? "text-muted-foreground",
                       )}
                     />
-                    <span className={cn("flex-1 truncate", isCollapsed && "md:hidden")}>
+                    <span
+                      className={cn(
+                        "flex-1 truncate capitalize",
+                        isCollapsed && "md:hidden",
+                      )}
+                    >
                       {type.name}
                     </span>
                     <span
@@ -114,9 +130,7 @@ export function Sidebar() {
                   {favoriteCollections.map((c) => (
                     <CollectionLink
                       key={c.id}
-                      name={c.name}
-                      itemCount={c.itemCount}
-                      favorite
+                      collection={c}
                       collapsed={isCollapsed}
                       onClick={closeMobile}
                     />
@@ -132,8 +146,7 @@ export function Sidebar() {
                   {recentCollections.map((c) => (
                     <CollectionLink
                       key={c.id}
-                      name={c.name}
-                      itemCount={c.itemCount}
+                      collection={c}
                       collapsed={isCollapsed}
                       onClick={closeMobile}
                     />
@@ -141,28 +154,43 @@ export function Sidebar() {
                 </ul>
               </>
             )}
+
+            <Link
+              href="/collections"
+              onClick={closeMobile}
+              className={cn(
+                "mt-2 flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                isCollapsed && "md:hidden",
+              )}
+            >
+              View all collections
+            </Link>
           </div>
         </nav>
 
         {/* User avatar */}
-        <div
-          className={cn(
-            "flex items-center gap-3 border-t border-sidebar-border p-3",
-            isCollapsed && "md:justify-center",
-          )}
-        >
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
-            {currentUser.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .slice(0, 2)}
+        {user && (
+          <div
+            className={cn(
+              "flex items-center gap-3 border-t border-sidebar-border p-3",
+              isCollapsed && "md:justify-center",
+            )}
+          >
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
+              {user.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .slice(0, 2)}
+            </div>
+            <div className={cn("min-w-0 flex-1", isCollapsed && "md:hidden")}>
+              <p className="truncate text-sm font-medium">{user.name}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {user.email}
+              </p>
+            </div>
           </div>
-          <div className={cn("min-w-0 flex-1", isCollapsed && "md:hidden")}>
-            <p className="truncate text-sm font-medium">{currentUser.name}</p>
-            <p className="truncate text-xs text-muted-foreground">{currentUser.email}</p>
-          </div>
-        </div>
+        )}
       </aside>
     </>
   );
@@ -196,19 +224,17 @@ function SubLabel({ label, collapsed }: { label: string; collapsed: boolean }) {
 }
 
 function CollectionLink({
-  name,
-  itemCount,
-  favorite = false,
+  collection,
   collapsed,
   onClick,
 }: {
-  name: string;
-  itemCount: number;
-  favorite?: boolean;
+  collection: SidebarCollection;
   collapsed: boolean;
   onClick?: () => void;
 }) {
-  const slug = name.toLowerCase().replace(/\s+/g, "-");
+  const slug = collection.name.toLowerCase().replace(/\s+/g, "-");
+  const dotColor = getTypeBgColor(collection.primaryTypeName);
+
   return (
     <li>
       <Link
@@ -218,21 +244,23 @@ function CollectionLink({
           "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
           collapsed && "md:justify-center",
         )}
-        title={collapsed ? name : undefined}
+        title={collapsed ? collection.name : undefined}
       >
-        <span className={cn("flex-1 truncate", collapsed && "md:hidden")}>{name}</span>
-        {favorite && (
-          <Star
-            className={cn(
-              "size-3.5 shrink-0 fill-yellow-500 text-yellow-500",
-              collapsed && "md:hidden",
-            )}
+        {collection.isFavorite ? (
+          <Star className="size-3.5 shrink-0 fill-yellow-500 text-yellow-500" />
+        ) : (
+          <span
+            className={cn("size-2.5 shrink-0 rounded-full", dotColor)}
+            aria-hidden
           />
         )}
+        <span className={cn("flex-1 truncate", collapsed && "md:hidden")}>
+          {collection.name}
+        </span>
         <span
           className={cn("text-xs text-muted-foreground", collapsed && "md:hidden")}
         >
-          {itemCount}
+          {collection.itemCount}
         </span>
       </Link>
     </li>
