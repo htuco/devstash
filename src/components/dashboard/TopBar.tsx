@@ -1,10 +1,29 @@
-import { Plus, Search } from "lucide-react";
+"use client";
+
+import { Menu, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useSidebar } from "./sidebar-context";
 
 export function TopBar() {
+  const { toggleCollapsed, toggleMobile } = useSidebar();
+
   return (
-    <header className="flex h-14 items-center gap-3 border-b border-border bg-background px-4">
+    <header className="sticky top-0 z-50 flex h-14 items-center gap-3 border-b border-border bg-background px-4">
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Toggle sidebar"
+        onClick={() => {
+          if (typeof window !== "undefined" && window.innerWidth < 768) {
+            toggleMobile();
+          } else {
+            toggleCollapsed();
+          }
+        }}
+      >
+        <Menu className="size-4" />
+      </Button>
       <div className="flex items-center gap-2 pr-2">
         <span className="font-semibold tracking-tight">DevStash</span>
       </div>
