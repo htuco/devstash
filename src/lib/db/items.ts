@@ -75,3 +75,52 @@ export async function getItemStats(userId: string) {
   ]);
   return { total, favorites };
 }
+
+export type SidebarItemType = {
+  id: string;
+  name: string;
+  icon: string | null;
+  count: number;
+};
+
+const SYSTEM_TYPE_ORDER = [
+  "snippet",
+  "prompt",
+  "command",
+  "note",
+  "file",
+  "image",
+  "link",
+];
+
+export async function getItemTypeCounts(
+  userId: string,
+): Promise<SidebarItemType[]> {
+  const types = await prisma.itemType.findMany({
+    where: {
+      OR: [{ isSystem: true }, { userId }],
+    },
+    select: {
+      id: true,
+      name: true,
+      icon: true,
+      _count: { select: { items: { where: { userId } } } },
+    },
+  });
+
+  return types
+    .map((t) => ({
+      id: t.id,
+      name: t.name,
+      icon: t.icon,
+      count: t._count.items,
+    }))
+    .sort((a, b) => {
+      const ai = SYSTEM_TYPE_ORDER.indexOf(a.name);
+      const bi = SYSTEM_TYPE_ORDER.indexOf(b.name);
+      if (ai === -1 && bi === -1) return a.name.localeCompare(b.name);
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+}

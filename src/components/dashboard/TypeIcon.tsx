@@ -86,3 +86,19 @@ export function getTypeBorderColor(typeName: string | null | undefined) {
 export function getIconNameForType(typeName: string) {
   return iconNameByTypeName[typeName] ?? "file";
 }
+
+const bgColorMap: Record<string, string> = {
+  snippet: "bg-blue-400",
+  prompt: "bg-pink-400",
+  command: "bg-orange-400",
+  note: "bg-sky-400",
+  file: "bg-zinc-400",
+  image: "bg-emerald-400",
+  url: "bg-purple-400",
+  link: "bg-purple-400",
+};
+
+export function getTypeBgColor(typeName: string | null | undefined) {
+  if (!typeName) return "bg-muted-foreground/40";
+  return bgColorMap[typeName] ?? "bg-muted-foreground/40";
+}

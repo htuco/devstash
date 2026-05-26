@@ -87,6 +87,7 @@ async function seedCollections(
       userId,
       name: "React Patterns",
       description: "Reusable React patterns and hooks",
+      isFavorite: true,
     },
   });
   await prisma.item.createMany({
@@ -160,6 +161,7 @@ export function cn(...inputs: ClassValue[]) {
       userId,
       name: "AI Workflows",
       description: "AI prompts and workflow automations",
+      isFavorite: true,
     },
   });
   await prisma.item.createMany({
