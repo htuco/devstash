@@ -245,6 +245,11 @@ model ItemTag {
 - Mobile drawer for sidebar
 - Touch‑optimized icons and buttons
 
+### Screenshots
+
+- Dashboard (main view): [dashboard-ui-main.png](screenshots/dashboard-ui-main.png)
+- Dashboard with item detail drawer: [dashboard-ui-drawer.png](screenshots/dashboard-ui-drawer.png)
+
 ---
 
 ## 🔌 API Architecture
