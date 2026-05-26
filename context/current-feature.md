@@ -6,7 +6,7 @@
 
 <!-- Not Started|In Progress|Completed -->
 
-Not Started
+Completed
 
 ## Goals
 
@@ -22,3 +22,4 @@ Not Started
 
 - Project setup and boilerplate cleanup
 - Initial setup of Next.js
+- Dashboard UI - Phase 1
