@@ -2,17 +2,30 @@ import { Clock, Pin } from "lucide-react";
 import { ItemRow } from "@/components/dashboard/ItemRow";
 import { RecentCollections } from "@/components/dashboard/RecentCollections";
 import { StatsCards } from "@/components/dashboard/StatsCards";
-import { collections, items } from "@/lib/mock-data";
+import {
+  getCollectionStats,
+  getRecentCollections,
+} from "@/lib/db/collections";
+import { items } from "@/lib/mock-data";
+import { prisma } from "@/lib/prisma";
 
-export default function DashboardPage() {
+const DEMO_EMAIL = "demo@devstash.io";
+
+export default async function DashboardPage() {
+  const demoUser = await prisma.user.findUnique({
+    where: { email: DEMO_EMAIL },
+    select: { id: true },
+  });
+
+  const [recentCollections, collectionStats] = demoUser
+    ? await Promise.all([
+        getRecentCollections(demoUser.id),
+        getCollectionStats(demoUser.id),
+      ])
+    : [[], { total: 0, favorites: 0 }];
+
   const totalItems = items.length;
-  const totalCollections = collections.length;
   const favoriteItems = items.filter((i) => i.isFavorite).length;
-  const favoriteCollections = collections.filter((c) => c.isFavorite).length;
-
-  const recentCollections = [...collections]
-    .sort((a, b) => Number(b.isFavorite) - Number(a.isFavorite))
-    .slice(0, 6);
 
   const pinnedItems = items.filter((i) => i.isPinned);
 
@@ -34,9 +47,9 @@ export default function DashboardPage() {
 
       <StatsCards
         totalItems={totalItems}
-        totalCollections={totalCollections}
+        totalCollections={collectionStats.total}
         favoriteItems={favoriteItems}
-        favoriteCollections={favoriteCollections}
+        favoriteCollections={collectionStats.favorites}
       />
 
       <RecentCollections collections={recentCollections} />

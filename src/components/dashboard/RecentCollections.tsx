@@ -1,9 +1,18 @@
 import Link from "next/link";
 import { MoreHorizontal, Star } from "lucide-react";
-import { itemTypes, type Collection } from "@/lib/mock-data";
-import { TypeIcon } from "./TypeIcon";
+import type { DashboardCollection } from "@/lib/db/collections";
+import { cn } from "@/lib/utils";
+import {
+  TypeIcon,
+  getIconNameForType,
+  getTypeBorderColor,
+} from "./TypeIcon";
 
-export function RecentCollections({ collections }: { collections: Collection[] }) {
+export function RecentCollections({
+  collections,
+}: {
+  collections: DashboardCollection[];
+}) {
   return (
     <section>
       <div className="flex items-center justify-between">
@@ -24,16 +33,17 @@ export function RecentCollections({ collections }: { collections: Collection[] }
   );
 }
 
-function CollectionCard({ collection }: { collection: Collection }) {
+function CollectionCard({ collection }: { collection: DashboardCollection }) {
   const slug = collection.name.toLowerCase().replace(/\s+/g, "-");
-  const types = collection.itemTypeIds
-    .map((id) => itemTypes.find((t) => t.id === id))
-    .filter((t): t is NonNullable<typeof t> => Boolean(t));
+  const borderColor = getTypeBorderColor(collection.primaryTypeName);
 
   return (
     <Link
       href={`/collections/${slug}`}
-      className="group flex flex-col rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent/40"
+      className={cn(
+        "group flex flex-col rounded-lg border border-border border-l-4 bg-card p-4 transition-colors hover:bg-accent/40",
+        borderColor,
+      )}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
@@ -44,19 +54,26 @@ function CollectionCard({ collection }: { collection: Collection }) {
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            {collection.itemCount} items
+            {collection.itemCount}{" "}
+            {collection.itemCount === 1 ? "item" : "items"}
           </p>
         </div>
         <MoreHorizontal className="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
       </div>
 
-      <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-        {collection.description}
-      </p>
+      {collection.description && (
+        <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
+          {collection.description}
+        </p>
+      )}
 
       <div className="mt-4 flex items-center gap-2">
-        {types.map((t) => (
-          <TypeIcon key={t.id} typeId={t.id} iconName={t.icon} />
+        {collection.types.map((t) => (
+          <TypeIcon
+            key={t.typeId}
+            typeId={t.typeName}
+            iconName={getIconNameForType(t.typeName)}
+          />
         ))}
       </div>
     </Link>

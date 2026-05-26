@@ -28,6 +28,29 @@ const iconColorMap: Record<string, string> = {
   file: "text-zinc-400",
   image: "text-emerald-400",
   url: "text-purple-400",
+  link: "text-purple-400",
+};
+
+const borderColorMap: Record<string, string> = {
+  snippet: "border-l-blue-400",
+  prompt: "border-l-pink-400",
+  command: "border-l-orange-400",
+  note: "border-l-sky-400",
+  file: "border-l-zinc-400",
+  image: "border-l-emerald-400",
+  url: "border-l-purple-400",
+  link: "border-l-purple-400",
+};
+
+const iconNameByTypeName: Record<string, string> = {
+  snippet: "code",
+  prompt: "sparkles",
+  command: "terminal",
+  note: "file-text",
+  file: "file",
+  image: "image",
+  link: "link",
+  url: "link",
 };
 
 export function TypeIcon({
@@ -53,4 +76,13 @@ export function TypeIcon({
 
 export function getTypeColor(typeId: string) {
   return iconColorMap[typeId] ?? "text-muted-foreground";
+}
+
+export function getTypeBorderColor(typeName: string | null | undefined) {
+  if (!typeName) return "border-l-border";
+  return borderColorMap[typeName] ?? "border-l-border";
+}
+
+export function getIconNameForType(typeName: string) {
+  return iconNameByTypeName[typeName] ?? "file";
 }
