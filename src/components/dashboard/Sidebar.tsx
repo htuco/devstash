@@ -12,6 +12,7 @@ import {
   iconColorMap,
   iconMap,
 } from "./TypeIcon";
+import { UserMenu } from "./UserMenu";
 
 const PRO_SYSTEM_TYPES = new Set(["file", "image"]);
 
@@ -28,7 +29,12 @@ export function Sidebar({
   itemTypes: SidebarItemType[];
   favoriteCollections: SidebarCollection[];
   recentCollections: SidebarCollection[];
-  user: { name: string; email: string; isPro: boolean } | null;
+  user: {
+    name: string;
+    email: string;
+    image?: string | null;
+    isPro: boolean;
+  } | null;
 }) {
   const { isCollapsed, isMobileOpen, closeMobile } = useSidebar();
 
@@ -153,53 +159,16 @@ export function Sidebar({
           </div>
         </nav>
 
-        {/* User avatar */}
+        {/* User menu */}
         {user && (
-          <div
-            className={cn(
-              "flex items-center gap-3 border-t border-sidebar-border p-3",
-              isCollapsed && "md:justify-center",
-            )}
-          >
-            <div className="relative shrink-0">
-              <div className="flex size-8 items-center justify-center rounded-full bg-muted text-sm font-medium">
-                {user.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .slice(0, 2)}
-              </div>
-              {user.isPro && (
-                <span
-                  aria-hidden
-                  className={cn(
-                    "absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-linear-to-br from-amber-300 to-amber-500 ring-2 ring-sidebar",
-                    !isCollapsed && "md:hidden",
-                  )}
-                />
-              )}
-            </div>
-            <div className={cn("min-w-0 flex-1", isCollapsed && "md:hidden")}>
-              <div className="flex items-center gap-1.5">
-                <p className="truncate text-sm font-medium">{user.name}</p>
-                {user.isPro && <ProBadge />}
-              </div>
-              <p className="truncate text-xs text-muted-foreground">
-                {user.email}
-              </p>
-            </div>
-            {!user.isPro && (
-              <Link
-                href="/upgrade"
-                onClick={closeMobile}
-                className={cn(
-                  "rounded-md border border-amber-500/40 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-400 hover:bg-amber-500/10",
-                  isCollapsed && "md:hidden",
-                )}
-              >
-                Upgrade
-              </Link>
-            )}
+          <div className="border-t border-sidebar-border p-2">
+            <UserMenu
+              name={user.name}
+              email={user.email}
+              image={user.image}
+              isPro={user.isPro}
+              collapsed={isCollapsed}
+            />
           </div>
         )}
       </aside>
