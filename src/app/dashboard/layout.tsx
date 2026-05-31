@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { SidebarProvider } from "@/components/dashboard/sidebar-context";
 import { TopBar } from "@/components/dashboard/TopBar";
@@ -10,7 +11,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const demoUser = await getDemoUser();
+  const [session, demoUser] = await Promise.all([auth(), getDemoUser()]);
 
   const [itemTypes, sidebarCollections] = demoUser
     ? await Promise.all([
@@ -18,6 +19,16 @@ export default async function DashboardLayout({
         getSidebarCollections(demoUser.id),
       ])
     : [[], { favorites: [], recents: [] }];
+
+  const sessionUser = session?.user;
+  const sidebarUser = sessionUser
+    ? {
+        name: sessionUser.name ?? sessionUser.email ?? "Account",
+        email: sessionUser.email ?? "",
+        image: sessionUser.image,
+        isPro: demoUser?.isPro ?? false,
+      }
+    : null;
 
   return (
     <SidebarProvider>
@@ -28,15 +39,7 @@ export default async function DashboardLayout({
             itemTypes={itemTypes}
             favoriteCollections={sidebarCollections.favorites}
             recentCollections={sidebarCollections.recents}
-            user={
-              demoUser
-                ? {
-                    name: demoUser.name ?? "Demo User",
-                    email: demoUser.email,
-                    isPro: demoUser.isPro,
-                  }
-                : null
-            }
+            user={sidebarUser}
           />
           <main className="flex-1 px-4 py-4 md:px-10 md:py-8 lg:px-16">
             <div className="mx-auto w-full max-w-5xl">{children}</div>
