@@ -1,23 +1,20 @@
-# Current Feature: Pro badge on Pro-only type links
+# Current Feature
+
+<!-- Feature Name -->
 
 ## Status
 
-In Progress
+<!-- Not Started|In Progress|Completed -->
+
+Completed
 
 ## Goals
 
-- Mark Pro-only item types in the sidebar's Types list with a small `PRO` badge so free users immediately see which features require an upgrade.
-- Per `context/project-overview.md`, file uploads (Files), images (Images), and custom (user-created) item types are Pro features. Snippets, Prompts, Commands, Notes, and Links remain free.
-- Badge placement: between the type label and the count in the expanded sidebar; hidden when the sidebar is collapsed (icons-only mode already removes the label).
-- Visual style consistent with the existing user `ProBadge` (gold gradient pill, uppercase, small) but sized down to suit an inline row.
-- Works for both Pro and non-Pro users — the badge marks the *feature*, not the user's status. (Optionally suppress for Pro users since they already have access; decide during implementation.)
+<!-- Goals & requirements -->
 
 ## Notes
 
-- Source of truth for which types are Pro-only: derive from type name for system types (`file`, `image` → Pro) and from `ItemType.isSystem === false` for custom types. No schema change needed; `SidebarItemType` may need to expose `isSystem` if it doesn't already.
-- Check `src/lib/db/items.ts#getItemTypeCounts` to confirm what fields `SidebarItemType` carries today, and extend if necessary.
-- The reusable `ProBadge` is currently defined inline in `Sidebar.tsx`. Either parameterize its size or extract a smaller variant for inline use.
-- No routing or data-layer changes expected — purely a sidebar render tweak (+ possibly one extra field on `SidebarItemType`).
+<!-- Any extra notes -->
 
 ## History
 
@@ -35,3 +32,4 @@ In Progress
 - **Dashboard Items — DB wiring** — replaced remaining mock item data in the dashboard with live Neon/Prisma data. Added `src/lib/db/items.ts` (`getPinnedItems`, `getRecentItems`, `getItemStats`) returning a `DashboardItem` shape with type name and flattened tag names. `ItemRow` now takes a `DashboardItem`, derives its icon from the type name via `getIconNameForType`, and adds a left-border accent matching the type color (consistent with collection cards). Dashboard page fetches pinned, recent, and item stats in parallel with collection data; `StatsCards` now uses live item counts. The Pinned section is hidden when there are no pinned items.
 - **Stats & Sidebar — DB wiring** — sidebar now reads from Neon/Prisma instead of `mock-data`. Added `getItemTypeCounts(userId)` in `src/lib/db/items.ts` (returns system + user types with per-user item counts, sorted by the fixed system order: snippet, prompt, command, note, file, image, link) and `getSidebarCollections(userId)` in `src/lib/db/collections.ts` (returns `{ favorites, recents }`, each entry carrying `primaryTypeName`). Dashboard layout converted to an async server component that fetches sidebar data in parallel and passes it to `Sidebar`. `Sidebar` now takes props; type links go to `/items/[name]` with live counts; favorite collections keep the star, recent collections show a colored dot via new `getTypeBgColor` helper in `TypeIcon.tsx`. Added a "View all collections" link below the lists pointing to `/collections`. Seed now marks "React Patterns" and "AI Workflows" as `isFavorite: true` so the Favorites group has data.
 - **Sidebar PRO badge** — dashboard layout now selects `isPro` for the demo user and passes it to `Sidebar`. `Sidebar` user prop gained `isPro: boolean`; when true, a gold gradient `PRO` pill renders next to the user name and a small amber dot decorates the avatar in collapsed mode so the Pro state stays visible. Non-Pro users see a subtle `Upgrade` chip linking to `/upgrade` instead. Flipped the seed demo user (`demo@devstash.io`) to `isPro: true` so the badge is visible in the demo by default. No schema change required — `User.isPro` already existed.
+- **Pro badge on Pro-only type links** — Pro-gated item types now render a small gold `PRO` pill in the sidebar between the label and the count. Pro types are derived as system types `file` and `image` plus any non-system (user-created) types via a new `PRO_SYSTEM_TYPES` set and `isProType()` helper in `Sidebar.tsx`. The inline badge is hidden in collapsed mode alongside the label. `ProBadge` was parameterized with `size: "xs" | "sm"` and a `className` passthrough so the inline variant fits cleanly on one row without redefining styles. `SidebarItemType` (and `getItemTypeCounts`) now expose `isSystem` so the sidebar can identify custom types. Badge is shown to all users (Pro and free) since it marks the feature itself. No schema change.
