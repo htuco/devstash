@@ -2,55 +2,19 @@
 
 <!-- Feature Name -->
 
-Code audit fixes (round 1)
-
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Not Started
+Completed
 
 ## Goals
 
 <!-- Goals & requirements -->
 
-Address the High and Medium severity findings from the code-scanner audit, plus a few high-value Low items. Each fix should be minimal and preserve existing behavior unless explicitly noted.
-
-### High
-
-1. **Bound the nested items load in collection helpers** — `getRecentCollections` and `getSidebarCollections` in `src/lib/db/collections.ts` currently `include: { items }` with no `take` and aggregate type counts in memory. Replace with a Prisma `groupBy` on `item` (`by: ['collectionId', 'typeId']`, filtered to the user's collections) and join the counts back to the collection rows. Keep the existing return shape (`DashboardCollection` / `SidebarCollection` with `typeBreakdown` and `primaryTypeName`).
-
-2. **Deduplicate the demo user lookup** — `src/app/dashboard/layout.tsx` and `src/app/dashboard/page.tsx` both call `prisma.user.findUnique({ where: { email: DEMO_EMAIL } })` in the same render. Extract a `getDemoUser()` helper in `src/lib/server/demo-user.ts` wrapped in React's `cache()` so both consumers share one DB round-trip. Move `DEMO_EMAIL` into that file and import from both call sites (also closes the Low-severity duplicate-constant finding).
-
-3. **Use collection IDs in URLs, not name slugs** — Replace `` `/collections/${name.toLowerCase().replace(/\s+/g, '-')}` `` with `` `/collections/${collection.id}` `` in `src/components/dashboard/Sidebar.tsx` (favorites + recents) and `src/components/dashboard/RecentCollections.tsx`. No route exists yet, so this is a pre-emptive fix.
-
-### Medium
-
-4. **Cap `getPinnedItems`** — Add a `limit = 20` parameter to `getPinnedItems` in `src/lib/db/items.ts` and pass it through to `take`. Dashboard call site stays on the default.
-
-5. **Guard `DATABASE_URL` in `src/lib/prisma.ts`** — Throw an explicit `Error("DATABASE_URL environment variable is not set")` before constructing `PrismaPg` so missing env fails fast with a clear message.
-
-6. **Deduplicate `iconMap` / `iconColorMap`** — Export both maps from `src/components/dashboard/TypeIcon.tsx` and import them in `src/components/dashboard/Sidebar.tsx` instead of redeclaring. Keep behavior identical.
-
-7. **Parallelize system-type seed upserts** — Replace the sequential `for...of await` loop in `prisma/seed.ts` with `Promise.all(SYSTEM_TYPES.map(...))`. Preserves the find-then-create logic (needed because `userId` is nullable on the unique key).
-
-### Low (bundled with the above)
-
-8. **Reorder `isProType` boolean** — In `src/components/dashboard/Sidebar.tsx`, write `PRO_SYSTEM_TYPES.has(type.name) || !type.isSystem` for clarity. No behavior change.
-
-9. **Remove dead `typeof window` guard in `TopBar`** — `src/components/dashboard/TopBar.tsx` is a client component; drop the SSR check.
-
-10. **Use `cn()` for icon classes in `StatsCards`** — Replace the template literal at `src/components/dashboard/StatsCards.tsx:62` with `cn("size-6", stat.iconClass)`.
-
-Skipping for now: explicit return types on `getItemStats` / `getCollectionStats` (Low, low payoff), and the misleading `ChevronDown` in `SectionLabel` (needs a UX call — collapse the sections, or just remove the chevron?).
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- All changes are in-place; no schema migrations and no new dependencies.
-- After implementation: run `npm run build` and verify the dashboard renders correctly in the browser before committing.
-- Branch: `fix/audit-round-1`.
 
 ## History
 
@@ -69,3 +33,4 @@ Skipping for now: explicit return types on `getItemStats` / `getCollectionStats`
 - **Stats & Sidebar — DB wiring** — sidebar now reads from Neon/Prisma instead of `mock-data`. Added `getItemTypeCounts(userId)` in `src/lib/db/items.ts` (returns system + user types with per-user item counts, sorted by the fixed system order: snippet, prompt, command, note, file, image, link) and `getSidebarCollections(userId)` in `src/lib/db/collections.ts` (returns `{ favorites, recents }`, each entry carrying `primaryTypeName`). Dashboard layout converted to an async server component that fetches sidebar data in parallel and passes it to `Sidebar`. `Sidebar` now takes props; type links go to `/items/[name]` with live counts; favorite collections keep the star, recent collections show a colored dot via new `getTypeBgColor` helper in `TypeIcon.tsx`. Added a "View all collections" link below the lists pointing to `/collections`. Seed now marks "React Patterns" and "AI Workflows" as `isFavorite: true` so the Favorites group has data.
 - **Sidebar PRO badge** — dashboard layout now selects `isPro` for the demo user and passes it to `Sidebar`. `Sidebar` user prop gained `isPro: boolean`; when true, a gold gradient `PRO` pill renders next to the user name and a small amber dot decorates the avatar in collapsed mode so the Pro state stays visible. Non-Pro users see a subtle `Upgrade` chip linking to `/upgrade` instead. Flipped the seed demo user (`demo@devstash.io`) to `isPro: true` so the badge is visible in the demo by default. No schema change required — `User.isPro` already existed.
 - **Pro badge on Pro-only type links** — Pro-gated item types now render a small gold `PRO` pill in the sidebar between the label and the count. Pro types are derived as system types `file` and `image` plus any non-system (user-created) types via a new `PRO_SYSTEM_TYPES` set and `isProType()` helper in `Sidebar.tsx`. The inline badge is hidden in collapsed mode alongside the label. `ProBadge` was parameterized with `size: "xs" | "sm"` and a `className` passthrough so the inline variant fits cleanly on one row without redefining styles. `SidebarItemType` (and `getItemTypeCounts`) now expose `isSystem` so the sidebar can identify custom types. Badge is shown to all users (Pro and free) since it marks the feature itself. No schema change.
+- **Code audit fixes (round 1)** — addressed High/Medium findings from the code-scanner audit. Replaced unbounded nested item loads in `getRecentCollections` and `getSidebarCollections` with a `prisma.item.groupBy(['collectionId','typeId'])` query joined to type names; collection rows now use `_count` for item totals. Added `src/lib/server/demo-user.ts` with a `React.cache()`-wrapped `getDemoUser()` so the dashboard layout and page share one DB round-trip (also unifies `DEMO_EMAIL`). Switched collection URLs in `Sidebar.tsx` and `RecentCollections.tsx` from name-derived slugs to `collection.id`. `getPinnedItems` now takes a `limit = 20` cap; `src/lib/prisma.ts` throws if `DATABASE_URL` is missing. Exported `iconMap` / `iconColorMap` from `TypeIcon.tsx` and imported them in `Sidebar.tsx` to drop duplication. Parallelized system-type upserts in `prisma/seed.ts`. Reordered `isProType` for clarity, removed dead `typeof window` guard in `TopBar`, and switched `StatsCards` icon class to `cn()`.
