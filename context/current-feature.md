@@ -1,4 +1,4 @@
-# Current Feature: Add PRO Badge to Sidebar
+# Current Feature
 
 <!-- Feature Name -->
 
@@ -6,26 +6,15 @@
 
 <!-- Not Started|In Progress|Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals & requirements -->
 
-- Display a visible "PRO" badge in the sidebar to indicate Pro subscription status
-- Badge should reflect the user's `isPro` field from the `User` model
-- Show the badge near the user avatar/footer area of the sidebar (where the user identity already lives)
-- For non-Pro users, show an upgrade affordance (or hide the badge entirely — decide during implementation)
-- Match the existing sidebar visual style (dark mode first, minimal, developer-friendly)
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- The `User` model already has an `isPro: Boolean @default(false)` field — no schema change needed
-- Sidebar currently is a server component receiving props from the dashboard layout (see "Stats & Sidebar — DB wiring" history entry)
-- Demo user (`demo@devstash.io`) currently has `isPro: false` from seed — may need to flip in seed or via script to visually verify the Pro state
-- Use shadcn `Badge` component if available, otherwise a small Tailwind-styled pill
 
 ## History
 
@@ -42,3 +31,4 @@ In Progress
 - **Dashboard Collections — DB wiring** — replaced mock collection data in the dashboard main area with live Neon/Prisma data. Added `src/lib/db/collections.ts` (`getRecentCollections`, `getCollectionStats`) that returns a per-collection type breakdown sorted by count. `RecentCollections` card now takes a `DashboardCollection`, applies a left-border color derived from the most-used type, and renders an icon for each type present. `TypeIcon` extended with `getTypeBorderColor` / `getIconNameForType` helpers and a `link` alias for the existing `url` color. Dashboard page is now an async server component that looks up the demo user by email (auth not wired yet) and fetches collections + collection stats; items/pinned/recent remain on mock for now.
 - **Dashboard Items — DB wiring** — replaced remaining mock item data in the dashboard with live Neon/Prisma data. Added `src/lib/db/items.ts` (`getPinnedItems`, `getRecentItems`, `getItemStats`) returning a `DashboardItem` shape with type name and flattened tag names. `ItemRow` now takes a `DashboardItem`, derives its icon from the type name via `getIconNameForType`, and adds a left-border accent matching the type color (consistent with collection cards). Dashboard page fetches pinned, recent, and item stats in parallel with collection data; `StatsCards` now uses live item counts. The Pinned section is hidden when there are no pinned items.
 - **Stats & Sidebar — DB wiring** — sidebar now reads from Neon/Prisma instead of `mock-data`. Added `getItemTypeCounts(userId)` in `src/lib/db/items.ts` (returns system + user types with per-user item counts, sorted by the fixed system order: snippet, prompt, command, note, file, image, link) and `getSidebarCollections(userId)` in `src/lib/db/collections.ts` (returns `{ favorites, recents }`, each entry carrying `primaryTypeName`). Dashboard layout converted to an async server component that fetches sidebar data in parallel and passes it to `Sidebar`. `Sidebar` now takes props; type links go to `/items/[name]` with live counts; favorite collections keep the star, recent collections show a colored dot via new `getTypeBgColor` helper in `TypeIcon.tsx`. Added a "View all collections" link below the lists pointing to `/collections`. Seed now marks "React Patterns" and "AI Workflows" as `isFavorite: true` so the Favorites group has data.
+- **Sidebar PRO badge** — dashboard layout now selects `isPro` for the demo user and passes it to `Sidebar`. `Sidebar` user prop gained `isPro: boolean`; when true, a gold gradient `PRO` pill renders next to the user name and a small amber dot decorates the avatar in collapsed mode so the Pro state stays visible. Non-Pro users see a subtle `Upgrade` chip linking to `/upgrade` instead. Flipped the seed demo user (`demo@devstash.io`) to `isPro: true` so the badge is visible in the demo by default. No schema change required — `User.isPro` already existed.
