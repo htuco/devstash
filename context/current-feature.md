@@ -1,20 +1,23 @@
-# Current Feature
-
-<!-- Feature Name -->
+# Current Feature: Pro badge on Pro-only type links
 
 ## Status
 
-<!-- Not Started|In Progress|Completed -->
-
-Completed
+In Progress
 
 ## Goals
 
-<!-- Goals & requirements -->
+- Mark Pro-only item types in the sidebar's Types list with a small `PRO` badge so free users immediately see which features require an upgrade.
+- Per `context/project-overview.md`, file uploads (Files), images (Images), and custom (user-created) item types are Pro features. Snippets, Prompts, Commands, Notes, and Links remain free.
+- Badge placement: between the type label and the count in the expanded sidebar; hidden when the sidebar is collapsed (icons-only mode already removes the label).
+- Visual style consistent with the existing user `ProBadge` (gold gradient pill, uppercase, small) but sized down to suit an inline row.
+- Works for both Pro and non-Pro users — the badge marks the *feature*, not the user's status. (Optionally suppress for Pro users since they already have access; decide during implementation.)
 
 ## Notes
 
-<!-- Any extra notes -->
+- Source of truth for which types are Pro-only: derive from type name for system types (`file`, `image` → Pro) and from `ItemType.isSystem === false` for custom types. No schema change needed; `SidebarItemType` may need to expose `isSystem` if it doesn't already.
+- Check `src/lib/db/items.ts#getItemTypeCounts` to confirm what fields `SidebarItemType` carries today, and extend if necessary.
+- The reusable `ProBadge` is currently defined inline in `Sidebar.tsx`. Either parameterize its size or extract a smaller variant for inline use.
+- No routing or data-layer changes expected — purely a sidebar render tweak (+ possibly one extra field on `SidebarItemType`).
 
 ## History
 
