@@ -46,21 +46,23 @@ async function main() {
   // System types have userId=null; @@unique([userId, name]) doesn't enforce
   // uniqueness across NULLs in Postgres, so look up by (userId: null, name)
   // and create only when missing.
-  const typeIds = {} as Record<TypeName, string>;
-  for (const t of SYSTEM_TYPES) {
-    const existing = await prisma.itemType.findFirst({
-      where: { userId: null, name: t.name, isSystem: true },
-    });
-    const type = existing
-      ? await prisma.itemType.update({
-          where: { id: existing.id },
-          data: { icon: t.icon, color: t.color, isSystem: true },
-        })
-      : await prisma.itemType.create({
-          data: { name: t.name, icon: t.icon, color: t.color, isSystem: true },
-        });
-    typeIds[t.name] = type.id;
-  }
+  const typeEntries = await Promise.all(
+    SYSTEM_TYPES.map(async (t) => {
+      const existing = await prisma.itemType.findFirst({
+        where: { userId: null, name: t.name, isSystem: true },
+      });
+      const type = existing
+        ? await prisma.itemType.update({
+            where: { id: existing.id },
+            data: { icon: t.icon, color: t.color, isSystem: true },
+          })
+        : await prisma.itemType.create({
+            data: { name: t.name, icon: t.icon, color: t.color, isSystem: true },
+          });
+      return [t.name, type.id] as const;
+    }),
+  );
+  const typeIds = Object.fromEntries(typeEntries) as Record<TypeName, string>;
   console.log(`  item types: ${SYSTEM_TYPES.length}`);
 
   // Clear existing demo collections + items so reruns are deterministic

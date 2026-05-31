@@ -1,49 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ChevronDown,
-  Code,
-  FileText,
-  File,
-  Image as ImageIcon,
-  Link as LinkIcon,
-  Sparkles,
-  Star,
-  Terminal,
-  type LucideIcon,
-} from "lucide-react";
+import { ChevronDown, File, Star } from "lucide-react";
 import type { SidebarCollection } from "@/lib/db/collections";
 import type { SidebarItemType } from "@/lib/db/items";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-context";
-import { getIconNameForType, getTypeBgColor } from "./TypeIcon";
-
-const iconMap: Record<string, LucideIcon> = {
-  code: Code,
-  sparkles: Sparkles,
-  terminal: Terminal,
-  "file-text": FileText,
-  file: File,
-  image: ImageIcon,
-  link: LinkIcon,
-};
-
-const iconColorMap: Record<string, string> = {
-  snippet: "text-blue-400",
-  prompt: "text-pink-400",
-  command: "text-orange-400",
-  note: "text-sky-400",
-  file: "text-zinc-400",
-  image: "text-emerald-400",
-  url: "text-purple-400",
-  link: "text-purple-400",
-};
+import {
+  getIconNameForType,
+  getTypeBgColor,
+  iconColorMap,
+  iconMap,
+} from "./TypeIcon";
 
 const PRO_SYSTEM_TYPES = new Set(["file", "image"]);
 
 function isProType(type: SidebarItemType): boolean {
-  return !type.isSystem || PRO_SYSTEM_TYPES.has(type.name);
+  return PRO_SYSTEM_TYPES.has(type.name) || !type.isSystem;
 }
 
 export function Sidebar({
@@ -290,13 +263,12 @@ function CollectionLink({
   collapsed: boolean;
   onClick?: () => void;
 }) {
-  const slug = collection.name.toLowerCase().replace(/\s+/g, "-");
   const dotColor = getTypeBgColor(collection.primaryTypeName);
 
   return (
     <li>
       <Link
-        href={`/collections/${slug}`}
+        href={`/collections/${collection.id}`}
         onClick={onClick}
         className={cn(
           "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",

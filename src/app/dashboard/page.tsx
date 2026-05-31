@@ -11,15 +11,10 @@ import {
   getPinnedItems,
   getRecentItems,
 } from "@/lib/db/items";
-import { prisma } from "@/lib/prisma";
-
-const DEMO_EMAIL = "demo@devstash.io";
+import { getDemoUser } from "@/lib/server/demo-user";
 
 export default async function DashboardPage() {
-  const demoUser = await prisma.user.findUnique({
-    where: { email: DEMO_EMAIL },
-    select: { id: true },
-  });
+  const demoUser = await getDemoUser();
 
   const [recentCollections, collectionStats, pinnedItems, recentItems, itemStats] =
     demoUser
