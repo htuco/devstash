@@ -81,6 +81,7 @@ export type SidebarItemType = {
   name: string;
   icon: string | null;
   count: number;
+  isSystem: boolean;
 };
 
 const SYSTEM_TYPE_ORDER = [
@@ -104,6 +105,7 @@ export async function getItemTypeCounts(
       id: true,
       name: true,
       icon: true,
+      isSystem: true,
       _count: { select: { items: { where: { userId } } } },
     },
   });
@@ -114,6 +116,7 @@ export async function getItemTypeCounts(
       name: t.name,
       icon: t.icon,
       count: t._count.items,
+      isSystem: t.isSystem,
     }))
     .sort((a, b) => {
       const ai = SYSTEM_TYPE_ORDER.indexOf(a.name);

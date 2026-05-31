@@ -40,6 +40,12 @@ const iconColorMap: Record<string, string> = {
   link: "text-purple-400",
 };
 
+const PRO_SYSTEM_TYPES = new Set(["file", "image"]);
+
+function isProType(type: SidebarItemType): boolean {
+  return !type.isSystem || PRO_SYSTEM_TYPES.has(type.name);
+}
+
 export function Sidebar({
   itemTypes,
   favoriteCollections,
@@ -105,6 +111,12 @@ export function Sidebar({
                     >
                       {type.name}
                     </span>
+                    {isProType(type) && (
+                      <ProBadge
+                        size="xs"
+                        className={cn(isCollapsed && "md:hidden")}
+                      />
+                    )}
                     <span
                       className={cn(
                         "text-xs text-muted-foreground",
@@ -222,9 +234,21 @@ export function Sidebar({
   );
 }
 
-function ProBadge() {
+function ProBadge({
+  size = "sm",
+  className,
+}: {
+  size?: "xs" | "sm";
+  className?: string;
+}) {
   return (
-    <span className="rounded-sm bg-linear-to-br from-amber-300 to-amber-500 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-950">
+    <span
+      className={cn(
+        "rounded-sm bg-linear-to-br from-amber-300 to-amber-500 font-bold uppercase tracking-wider text-amber-950",
+        size === "xs" ? "px-1 py-px text-[8px]" : "px-1.5 py-0.5 text-[9px]",
+        className,
+      )}
+    >
       Pro
     </span>
   );
