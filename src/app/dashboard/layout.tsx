@@ -14,7 +14,7 @@ export default async function DashboardLayout({
 }) {
   const demoUser = await prisma.user.findUnique({
     where: { email: DEMO_EMAIL },
-    select: { id: true, name: true, email: true },
+    select: { id: true, name: true, email: true, isPro: true },
   });
 
   const [itemTypes, sidebarCollections] = demoUser
@@ -35,7 +35,11 @@ export default async function DashboardLayout({
             recentCollections={sidebarCollections.recents}
             user={
               demoUser
-                ? { name: demoUser.name ?? "Demo User", email: demoUser.email }
+                ? {
+                    name: demoUser.name ?? "Demo User",
+                    email: demoUser.email,
+                    isPro: demoUser.isPro,
+                  }
                 : null
             }
           />

@@ -31,14 +31,14 @@ async function main() {
       name: "Demo User",
       password: passwordHash,
       emailVerified: new Date(),
-      isPro: false,
+      isPro: true,
     },
     create: {
       email: DEMO_EMAIL,
       name: "Demo User",
       password: passwordHash,
       emailVerified: new Date(),
-      isPro: false,
+      isPro: true,
     },
   });
   console.log(`  user: ${user.email}`);
