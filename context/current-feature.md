@@ -1,52 +1,25 @@
-# Current Feature: Auth Setup - NextAuth + GitHub Provider
+# Current Feature
+
+<!-- Feature Name -->
 
 ## Status
+
+<!-- Not Started|In Progress|Completed -->
 
 Completed
 
 ## Goals
 
-- Install NextAuth v5 (`next-auth@beta`) and `@auth/prisma-adapter`
-- Set up split auth config pattern for edge compatibility (`src/auth.config.ts` + `src/auth.ts`)
-- Add GitHub OAuth provider
-- Create NextAuth API route handler at `src/app/api/auth/[...nextauth]/route.ts`
-- Create Next.js 16 proxy at `src/proxy.ts` protecting `/dashboard/*` routes
-- Redirect unauthenticated users to NextAuth's default sign-in page
-- Extend Session type with `user.id` via `src/types/next-auth.d.ts`
-- Verify flow: `/dashboard` → sign-in → GitHub OAuth → back to `/dashboard`
+<!-- Goals & requirements -->
 
 ## Notes
 
-**Key gotchas**:
-- Use `next-auth@beta` (not `@latest` which installs v4)
-- Proxy file must be at `src/proxy.ts` (same level as `app/`)
-- Use named export: `export const proxy = auth(...)` not default export
-- Use `session: { strategy: 'jwt' }` with split config pattern
-- Don't set custom `pages.signIn` — use NextAuth's default page
-- Verify newest config/conventions with Context7 before implementing
-
-**Env vars required**:
-- `AUTH_SECRET`
-- `AUTH_GITHUB_ID`
-- `AUTH_GITHUB_SECRET`
-
-**Files to create**:
-1. `src/auth.config.ts` — Edge-compatible config (providers only, no adapter)
-2. `src/auth.ts` — Full config with Prisma adapter and JWT strategy
-3. `src/app/api/auth/[...nextauth]/route.ts` — Export handlers from `auth.ts`
-4. `src/proxy.ts` — Route protection with redirect logic
-5. `src/types/next-auth.d.ts` — Extend Session type with `user.id`
-
-**Testing flow**:
-1. Visit `/dashboard` → expect redirect to sign-in
-2. Click "Sign in with GitHub"
-3. Verify redirect back to `/dashboard` after auth
-
-**References**:
-- Edge compatibility: https://authjs.dev/getting-started/installation#edge-compatibility
-- Prisma adapter: https://authjs.dev/getting-started/adapters/prisma
+<!-- Any extra notes -->
 
 ## History
+
+<!-- Keep this updated. Earliest to latest -->
+
 
 <!-- Keep this updated. Earliest to latest -->
 
