@@ -1,4 +1,4 @@
-# Current Feature
+# Current Feature: Auth Phase 2 — Credentials (Email/Password) Provider
 
 <!-- Feature Name -->
 
@@ -6,15 +6,33 @@
 
 <!-- Not Started|In Progress|Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+- Add a Credentials (email/password) provider alongside the existing GitHub OAuth provider.
+- Ensure `User.password` exists in the Prisma schema (migration if missing) so credentials accounts can be stored.
+- In `src/auth.config.ts` (edge-safe): add a Credentials provider with an `authorize: () => null` placeholder so middleware/edge stays bcrypt-free.
+- In `src/auth.ts` (Node runtime): override the Credentials provider with real `bcryptjs` validation against the DB.
+- Create `POST /api/auth/register` that:
+  - Accepts `{ name, email, password, confirmPassword }`.
+  - Validates password match.
+  - Rejects if the email is already in use.
+  - Hashes the password with `bcryptjs` and creates the user.
+  - Returns a success/error JSON response.
+- Verify end-to-end: register via curl → sign in with email/password at `/api/auth/signin` → redirect to `/dashboard`; GitHub OAuth still works.
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Use `bcryptjs` (already installed and used by `prisma/seed.ts`).
+- Keep the split-config pattern strictly: bcrypt and Prisma must only be imported from `src/auth.ts`, never from `src/auth.config.ts` (edge-incompatible).
+- No custom sign-in UI required — keep using the NextAuth default sign-in page.
+- Validate the register payload with Zod (matches existing `coding-standards.md`: "Validate all inputs with Zod").
+- Reference: https://authjs.dev/getting-started/authentication/credentials
 
 ## History
 
