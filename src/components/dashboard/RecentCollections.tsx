@@ -34,12 +34,11 @@ export function RecentCollections({
 }
 
 function CollectionCard({ collection }: { collection: DashboardCollection }) {
-  const slug = collection.name.toLowerCase().replace(/\s+/g, "-");
   const borderColor = getTypeBorderColor(collection.primaryTypeName);
 
   return (
     <Link
-      href={`/collections/${slug}`}
+      href={`/collections/${collection.id}`}
       className={cn(
         "group flex flex-col rounded-lg border border-border border-l-4 bg-card p-4 transition-colors hover:bg-accent/40",
         borderColor,

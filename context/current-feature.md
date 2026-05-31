@@ -2,19 +2,55 @@
 
 <!-- Feature Name -->
 
+Code audit fixes (round 1)
+
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Completed
+Not Started
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+Address the High and Medium severity findings from the code-scanner audit, plus a few high-value Low items. Each fix should be minimal and preserve existing behavior unless explicitly noted.
+
+### High
+
+1. **Bound the nested items load in collection helpers** — `getRecentCollections` and `getSidebarCollections` in `src/lib/db/collections.ts` currently `include: { items }` with no `take` and aggregate type counts in memory. Replace with a Prisma `groupBy` on `item` (`by: ['collectionId', 'typeId']`, filtered to the user's collections) and join the counts back to the collection rows. Keep the existing return shape (`DashboardCollection` / `SidebarCollection` with `typeBreakdown` and `primaryTypeName`).
+
+2. **Deduplicate the demo user lookup** — `src/app/dashboard/layout.tsx` and `src/app/dashboard/page.tsx` both call `prisma.user.findUnique({ where: { email: DEMO_EMAIL } })` in the same render. Extract a `getDemoUser()` helper in `src/lib/server/demo-user.ts` wrapped in React's `cache()` so both consumers share one DB round-trip. Move `DEMO_EMAIL` into that file and import from both call sites (also closes the Low-severity duplicate-constant finding).
+
+3. **Use collection IDs in URLs, not name slugs** — Replace `` `/collections/${name.toLowerCase().replace(/\s+/g, '-')}` `` with `` `/collections/${collection.id}` `` in `src/components/dashboard/Sidebar.tsx` (favorites + recents) and `src/components/dashboard/RecentCollections.tsx`. No route exists yet, so this is a pre-emptive fix.
+
+### Medium
+
+4. **Cap `getPinnedItems`** — Add a `limit = 20` parameter to `getPinnedItems` in `src/lib/db/items.ts` and pass it through to `take`. Dashboard call site stays on the default.
+
+5. **Guard `DATABASE_URL` in `src/lib/prisma.ts`** — Throw an explicit `Error("DATABASE_URL environment variable is not set")` before constructing `PrismaPg` so missing env fails fast with a clear message.
+
+6. **Deduplicate `iconMap` / `iconColorMap`** — Export both maps from `src/components/dashboard/TypeIcon.tsx` and import them in `src/components/dashboard/Sidebar.tsx` instead of redeclaring. Keep behavior identical.
+
+7. **Parallelize system-type seed upserts** — Replace the sequential `for...of await` loop in `prisma/seed.ts` with `Promise.all(SYSTEM_TYPES.map(...))`. Preserves the find-then-create logic (needed because `userId` is nullable on the unique key).
+
+### Low (bundled with the above)
+
+8. **Reorder `isProType` boolean** — In `src/components/dashboard/Sidebar.tsx`, write `PRO_SYSTEM_TYPES.has(type.name) || !type.isSystem` for clarity. No behavior change.
+
+9. **Remove dead `typeof window` guard in `TopBar`** — `src/components/dashboard/TopBar.tsx` is a client component; drop the SSR check.
+
+10. **Use `cn()` for icon classes in `StatsCards`** — Replace the template literal at `src/components/dashboard/StatsCards.tsx:62` with `cn("size-6", stat.iconClass)`.
+
+Skipping for now: explicit return types on `getItemStats` / `getCollectionStats` (Low, low payoff), and the misleading `ChevronDown` in `SectionLabel` (needs a UX call — collapse the sections, or just remove the chevron?).
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- All changes are in-place; no schema migrations and no new dependencies.
+- After implementation: run `npm run build` and verify the dashboard renders correctly in the browser before committing.
+- Branch: `fix/audit-round-1`.
 
 ## History
 

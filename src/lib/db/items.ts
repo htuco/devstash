@@ -46,10 +46,14 @@ function toDashboardItem(row: ItemRow): DashboardItem {
   };
 }
 
-export async function getPinnedItems(userId: string): Promise<DashboardItem[]> {
+export async function getPinnedItems(
+  userId: string,
+  limit = 20,
+): Promise<DashboardItem[]> {
   const rows = await prisma.item.findMany({
     where: { userId, isPinned: true },
     orderBy: { updatedAt: "desc" },
+    take: limit,
     select: itemSelect,
   });
   return rows.map(toDashboardItem);

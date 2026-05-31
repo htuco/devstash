@@ -1,5 +1,6 @@
 import { FolderHeart, Folders, Heart, LayoutGrid } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Stat = {
   label: string;
@@ -59,7 +60,7 @@ export function StatsCards({
               <p className="text-xs font-medium text-muted-foreground">
                 {stat.label}
               </p>
-              <Icon className={`size-6 ${stat.iconClass}`} />
+              <Icon className={cn("size-6", stat.iconClass)} />
             </div>
             <p className="mt-2 text-4xl font-semibold tracking-tight">
               {stat.value}

@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const iconMap: Record<string, LucideIcon> = {
+export const iconMap: Record<string, LucideIcon> = {
   code: Code,
   sparkles: Sparkles,
   terminal: Terminal,
@@ -20,7 +20,7 @@ const iconMap: Record<string, LucideIcon> = {
   link: LinkIcon,
 };
 
-const iconColorMap: Record<string, string> = {
+export const iconColorMap: Record<string, string> = {
   snippet: "text-blue-400",
   prompt: "text-pink-400",
   command: "text-orange-400",
