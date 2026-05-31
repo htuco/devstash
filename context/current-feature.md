@@ -1,4 +1,4 @@
-# Current Feature
+# Current Feature: Add PRO Badge to Sidebar
 
 <!-- Feature Name -->
 
@@ -6,15 +6,26 @@
 
 <!-- Not Started|In Progress|Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+- Display a visible "PRO" badge in the sidebar to indicate Pro subscription status
+- Badge should reflect the user's `isPro` field from the `User` model
+- Show the badge near the user avatar/footer area of the sidebar (where the user identity already lives)
+- For non-Pro users, show an upgrade affordance (or hide the badge entirely — decide during implementation)
+- Match the existing sidebar visual style (dark mode first, minimal, developer-friendly)
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- The `User` model already has an `isPro: Boolean @default(false)` field — no schema change needed
+- Sidebar currently is a server component receiving props from the dashboard layout (see "Stats & Sidebar — DB wiring" history entry)
+- Demo user (`demo@devstash.io`) currently has `isPro: false` from seed — may need to flip in seed or via script to visually verify the Pro state
+- Use shadcn `Badge` component if available, otherwise a small Tailwind-styled pill
 
 ## History
 
