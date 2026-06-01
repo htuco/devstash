@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { createEmailVerificationToken } from "@/lib/email-verification";
+import {
+  createEmailVerificationToken,
+  isEmailVerificationEnabled,
+} from "@/lib/email-verification";
 import { sendVerificationEmail } from "@/lib/email";
 
 const registerSchema = z
@@ -48,11 +51,28 @@ export async function POST(req: Request) {
   }
 
   const hashed = await bcrypt.hash(password, 10);
+  const verificationEnabled = isEmailVerificationEnabled();
 
   const user = await prisma.user.create({
-    data: { name, email: normalizedEmail, password: hashed },
+    // When verification is disabled, mark the account verified immediately so
+    // the user can sign in right away (and stays verified if the flag flips on).
+    data: {
+      name,
+      email: normalizedEmail,
+      password: hashed,
+      emailVerified: verificationEnabled ? null : new Date(),
+    },
     select: { id: true, email: true, name: true },
   });
+
+  // With verification off there's nothing to send; report it as "sent" so the
+  // client doesn't surface a delivery-failure warning.
+  if (!verificationEnabled) {
+    return NextResponse.json(
+      { success: true, user, emailSent: true, verificationRequired: false },
+      { status: 201 },
+    );
+  }
 
   // Send the verification email. A delivery failure shouldn't roll back the
   // account — the user can request a new link from the sign-in flow.
@@ -65,5 +85,8 @@ export async function POST(req: Request) {
     console.error("Failed to send verification email:", err);
   }
 
-  return NextResponse.json({ success: true, user, emailSent }, { status: 201 });
+  return NextResponse.json(
+    { success: true, user, emailSent, verificationRequired: true },
+    { status: 201 },
+  );
 }

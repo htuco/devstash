@@ -60,8 +60,16 @@ export function RegisterForm() {
       }
 
       const data = (await res.json().catch(() => null)) as
-        | { emailSent?: boolean }
+        | { emailSent?: boolean; verificationRequired?: boolean }
         | null;
+
+      // Verification disabled server-side: account is already usable — send the
+      // user straight to sign-in instead of the "check your inbox" panel.
+      if (data?.verificationRequired === false) {
+        router.push("/sign-in?registered=ready");
+        return;
+      }
+
       if (data?.emailSent === false) {
         toast.warning(
           "Account created, but we couldn't send the verification email. Use \"Resend\" below.",
