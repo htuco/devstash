@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
@@ -20,17 +20,49 @@ export function SignInForm() {
   const callbackUrl = params.get("callbackUrl") ?? "/dashboard";
 
   const [error, setError] = useState<string | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const noticeShown = useRef(false);
 
   useEffect(() => {
+    // Guard against Strict Mode's double-invoke firing the toast twice.
+    if (noticeShown.current) return;
+
     if (params.get("registered") === "1") {
-      toast.success("Account created — sign in below");
+      noticeShown.current = true;
+      toast.success("Account created — check your email to verify before signing in");
+    } else if (params.get("verified") === "1") {
+      noticeShown.current = true;
+      toast.success("Email verified — you can sign in now");
+    } else {
+      return;
     }
-  }, [params]);
+
+    // Strip the notice param so the toast can't re-fire on refresh/navigation,
+    // preserving any callbackUrl that was passed along.
+    const cb = params.get("callbackUrl");
+    router.replace(cb ? `/sign-in?callbackUrl=${encodeURIComponent(cb)}` : "/sign-in", {
+      scroll: false,
+    });
+  }, [params, router]);
+
+  async function resendVerification(email: string) {
+    const res = await fetch("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (res.ok) {
+      toast.success("Verification link sent — check your inbox.");
+    } else {
+      toast.error("Couldn't send the link. Try again shortly.");
+    }
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    setUnverifiedEmail(null);
 
     const formData = new FormData(e.currentTarget);
     const parsed = schema.safeParse({
@@ -49,6 +81,11 @@ export function SignInForm() {
         redirect: false,
       });
       if (!result || result.error) {
+        if (result?.code === "email_not_verified") {
+          setUnverifiedEmail(parsed.data.email);
+          setError("Please verify your email before signing in.");
+          return;
+        }
         const msg = "Invalid email or password";
         setError(msg);
         toast.error(msg);
@@ -85,12 +122,21 @@ export function SignInForm() {
       </div>
 
       {error && (
-        <p
+        <div
           role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="space-y-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
         >
-          {error}
-        </p>
+          <p>{error}</p>
+          {unverifiedEmail && (
+            <button
+              type="button"
+              onClick={() => resendVerification(unverifiedEmail)}
+              className="font-medium underline underline-offset-4 hover:no-underline"
+            >
+              Resend verification email
+            </button>
+          )}
+        </div>
       )}
 
       <Button type="submit" className="w-full" disabled={pending}>

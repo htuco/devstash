@@ -1,4 +1,5 @@
 import NextAuth from "next-auth";
+import { CredentialsSignin } from "@auth/core/errors";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
@@ -10,6 +11,12 @@ const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
 });
+
+// Thrown when a credentials account exists but hasn't verified its email.
+// The `code` reaches the client as `error=email_not_verified`.
+class EmailNotVerifiedError extends CredentialsSignin {
+  code = "email_not_verified";
+}
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -38,11 +45,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         if (!parsed.success) return null;
 
         const { email, password } = parsed.data;
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({
+          where: { email: email.toLowerCase() },
+        });
         if (!user?.password) return null;
 
         const ok = await bcrypt.compare(password, user.password);
         if (!ok) return null;
+
+        // Credentials accounts must verify their email before signing in.
+        if (!user.emailVerified) {
+          throw new EmailNotVerifiedError();
+        }
 
         return {
           id: user.id,
