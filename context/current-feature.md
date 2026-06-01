@@ -1,29 +1,16 @@
 # Current Feature
 
-Email Verification on Register (Resend)
-
 ## Status
 
-Completed
+Not Started
 
 ## Goals
 
-- New users who register with email/password must verify their email before they can sign in.
-- On successful registration, send a verification email via Resend containing a unique, time-limited link.
-- Clicking the link verifies the account (marks the email as verified) and lets the user sign in.
-- Provide clear UX: post-register prompt to check inbox, success/failure states on the verify page, and a way to resend the link if expired.
-- Credentials sign-in is blocked for unverified accounts with a helpful message.
-- GitHub OAuth accounts are considered verified (provider-attested) — no email step needed.
+<!-- What does success look like? -->
 
 ## Notes
 
-- Email provider: **Resend**. `RESEND_API_KEY` is already in the env file.
-- Verification flow applies to the **Credentials (email/password)** provider only; OAuth users skip it.
-- Token storage: reuse Prisma `VerificationToken` model (already present for NextAuth) or add a dedicated token model — decide during planning.
-- `User.emailVerified` (DateTime?) likely already exists via the NextAuth schema; confirm before adding a migration.
-- Link should be single-use and time-limited (e.g. 24h expiry).
-- Need a `from` sender address / domain configured in Resend (confirm what's available).
-- Custom sign-in / register UI already exists (Auth Phase 3) — wire verification into those flows.
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
