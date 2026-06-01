@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { createEmailVerificationToken } from "@/lib/email-verification";
+import { sendVerificationEmail } from "@/lib/email";
 
 const registerSchema = z
   .object({
@@ -52,5 +54,16 @@ export async function POST(req: Request) {
     select: { id: true, email: true, name: true },
   });
 
-  return NextResponse.json({ success: true, user }, { status: 201 });
+  // Send the verification email. A delivery failure shouldn't roll back the
+  // account — the user can request a new link from the sign-in flow.
+  let emailSent = true;
+  try {
+    const token = await createEmailVerificationToken(user.id);
+    await sendVerificationEmail({ to: user.email, name: user.name, token });
+  } catch (err) {
+    emailSent = false;
+    console.error("Failed to send verification email:", err);
+  }
+
+  return NextResponse.json({ success: true, user, emailSent }, { status: 201 });
 }

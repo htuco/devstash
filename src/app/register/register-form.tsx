@@ -23,6 +23,7 @@ const schema = z
 export function RegisterForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -58,9 +59,50 @@ export function RegisterForm() {
         return;
       }
 
-      toast.success("Account created — sign in to continue");
-      router.push("/sign-in?registered=1");
+      const data = (await res.json().catch(() => null)) as
+        | { emailSent?: boolean }
+        | null;
+      if (data?.emailSent === false) {
+        toast.warning(
+          "Account created, but we couldn't send the verification email. Use \"Resend\" below.",
+        );
+      } else {
+        toast.success("Account created — check your email to verify");
+      }
+      setRegisteredEmail(parsed.data.email);
     });
+  }
+
+  if (registeredEmail) {
+    return (
+      <div className="space-y-4 text-center">
+        <div className="rounded-md border border-border bg-muted/40 px-4 py-6">
+          <p className="text-sm">
+            We sent a verification link to{" "}
+            <span className="font-medium text-foreground">{registeredEmail}</span>.
+            Click it to activate your account, then sign in.
+          </p>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Didn&apos;t get it? Check spam, or{" "}
+          <button
+            type="button"
+            onClick={() => router.push("/verify-email")}
+            className="font-medium text-foreground underline underline-offset-4 hover:no-underline"
+          >
+            resend the link
+          </button>
+          .
+        </p>
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => router.push("/sign-in")}
+        >
+          Go to sign in
+        </Button>
+      </div>
+    );
   }
 
   return (

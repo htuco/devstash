@@ -26,6 +26,7 @@ model User {
 
   accounts    Account[]
   sessions    Session[]
+  emailVerificationTokens EmailVerificationToken[]
   items       Item[]
   itemTypes   ItemType[]
   collections Collection[]
@@ -72,6 +73,19 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// Email verification tokens for credentials sign-up (Resend).
+// Single-use, time-limited; the raw token is hashed before storage.
+model EmailVerificationToken {
+  id      String   @id @default(cuid())
+  token   String   @unique // sha-256 hash of the raw token sent in the email
+  userId  String
+  expires DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // ---------- Core ----------
