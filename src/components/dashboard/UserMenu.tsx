@@ -7,6 +7,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -79,28 +80,30 @@ export function UserMenu({
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" side="top" className="w-56">
-        <DropdownMenuLabel className="flex flex-col gap-0.5">
-          <span className="truncate text-sm font-medium">{name}</span>
-          <span className="truncate text-xs font-normal text-muted-foreground">
-            {email}
-          </span>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={() => router.push("/profile")}
-          className="cursor-pointer"
-        >
-          <UserIcon className="size-4" />
-          Profile
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={() => signOut({ callbackUrl: "/sign-in" })}
-          className="cursor-pointer text-destructive focus:text-destructive"
-        >
-          <LogOut className="size-4" />
-          Sign out
-        </DropdownMenuItem>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex flex-col gap-0.5">
+            <span className="truncate text-sm font-medium">{name}</span>
+            <span className="truncate text-xs font-normal text-muted-foreground">
+              {email}
+            </span>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={() => router.push("/profile")}
+            className="cursor-pointer"
+          >
+            <UserIcon className="size-4" />
+            Profile
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={() => signOut({ callbackUrl: "/sign-in" })}
+            className="cursor-pointer text-destructive focus:text-destructive"
+          >
+            <LogOut className="size-4" />
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
