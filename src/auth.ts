@@ -5,6 +5,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { isEmailVerificationEnabled } from "@/lib/email-verification";
 import authConfig from "./auth.config";
 
 const credentialsSchema = z.object({
@@ -53,8 +54,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         const ok = await bcrypt.compare(password, user.password);
         if (!ok) return null;
 
-        // Credentials accounts must verify their email before signing in.
-        if (!user.emailVerified) {
+        // Credentials accounts must verify their email before signing in —
+        // unless the verification system is disabled.
+        if (isEmailVerificationEnabled() && !user.emailVerified) {
           throw new EmailNotVerifiedError();
         }
 

@@ -4,6 +4,18 @@ import { prisma } from "@/lib/prisma";
 // How long a verification link stays valid.
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
+/**
+ * Whether the email-verification system is active. Defaults to ON; set
+ * `EMAIL_VERIFICATION_ENABLED=false` (or `0`) to disable it — useful while no
+ * sending domain is verified in Resend, so registration isn't blocked.
+ * When disabled, sign-ups are auto-verified, no email is sent, and the
+ * sign-in block is skipped.
+ */
+export function isEmailVerificationEnabled(): boolean {
+  const raw = process.env.EMAIL_VERIFICATION_ENABLED?.trim().toLowerCase();
+  return raw !== "false" && raw !== "0";
+}
+
 /** SHA-256 hash of the raw token — only the hash is ever stored. */
 function hashToken(rawToken: string): string {
   return createHash("sha256").update(rawToken).digest("hex");

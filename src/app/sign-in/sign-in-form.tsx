@@ -28,7 +28,12 @@ export function SignInForm() {
     // Guard against Strict Mode's double-invoke firing the toast twice.
     if (noticeShown.current) return;
 
-    if (params.get("registered") === "1") {
+    const registered = params.get("registered");
+    if (registered === "ready") {
+      // Verification disabled — account is ready to use immediately.
+      noticeShown.current = true;
+      toast.success("Account created — sign in below");
+    } else if (registered === "1") {
       noticeShown.current = true;
       toast.success("Account created — check your email to verify before signing in");
     } else if (params.get("verified") === "1") {

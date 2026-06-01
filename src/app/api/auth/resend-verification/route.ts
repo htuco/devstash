@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { createEmailVerificationToken } from "@/lib/email-verification";
+import {
+  createEmailVerificationToken,
+  isEmailVerificationEnabled,
+} from "@/lib/email-verification";
 import { sendVerificationEmail } from "@/lib/email";
 
 const schema = z.object({
@@ -19,6 +22,15 @@ export async function POST(req: Request) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
+  }
+
+  // Nothing to resend when verification is disabled. Respond 200 to keep the
+  // client UX uniform (and avoid leaking the flag state).
+  if (!isEmailVerificationEnabled()) {
+    return NextResponse.json(
+      { message: "If that account exists and is unverified, a new link has been sent." },
+      { status: 200 },
+    );
   }
 
   const email = parsed.data.email.toLowerCase();
